@@ -7,6 +7,7 @@ import (
 
 import (
 	"gopkg.in/macaron.v1"
+	"runtime"
 )
 
 type Render interface {
@@ -19,8 +20,20 @@ type BeautyRender struct {
 	Ctx *macaron.Context
 }
 
+func StackTrace(all bool) string {
+	// Reserve 10K buffer at first
+	buf := make([]byte, 10240)
+	size := runtime.Stack(buf, all)
+	return string(buf[0:size])
+}
+
 // 支持string,error,ErrorResponse三种参数
 func (this BeautyRender) Error(err interface{}) {
+
+	if logger.Level >= DebugLevel {
+		logger.Debug(StackTrace(false))
+	}
+
 	switch err.(type) {
 	case ErrResp:
 		this.Ctx.JSON(200, err)
