@@ -2,7 +2,7 @@ package beauty
 
 import (
 	"encoding/json"
-	"qiniupkg.com/x/errors.v7"
+	"errors"
 )
 
 var (
