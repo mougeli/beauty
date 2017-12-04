@@ -13,6 +13,8 @@ import (
 type Render interface {
 	OK(data interface{})
 	Error(err interface{})
+	ECode(code int, errs ...error)
+	E(code int, msg string, err error)
 	Interface(data interface{})
 }
 
