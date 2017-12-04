@@ -17,7 +17,8 @@ type Render interface {
 }
 
 type BeautyRender struct {
-	Ctx *macaron.Context
+	Ctx      *macaron.Context
+	ErrorMap map[int]error
 }
 
 func StackTrace(all bool) string {
@@ -27,23 +28,40 @@ func StackTrace(all bool) string {
 	return string(buf[0:size])
 }
 
+func (r BeautyRender) ECode(code int, errs ...error) {
+	msg := "UNKNOWN"
+	e, has := r.ErrorMap[code]
+	if has {
+		msg = e.Error()
+	}
+	if len(errs) != 0 {
+		msg += "[ERROR:"
+		for _, err := range errs {
+			msg += err.Error() + ";"
+		}
+		msg += "]"
+	}
+	r.Ctx.JSON(200, &Resp2{
+		Code: code,
+		Msg:  msg,
+	})
+}
+
 func (r BeautyRender) E(code int, msg string, err error) {
 	if err != nil {
 		msg += "[ERROR:" + err.Error() + "]"
 	}
-	r.Ctx.JSON(200, &Resp{
-		Code: int64(code),
+	r.Ctx.JSON(200, &Resp2{
+		Code: code,
 		Msg:  msg,
 	})
 }
 
 // 支持string,error,ErrorResponse三种参数
 func (r BeautyRender) Error(err interface{}) {
-
 	if logger.Level >= DebugLevel {
 		logger.Debug(StackTrace(false))
 	}
-
 	switch err.(type) {
 	case ErrResp:
 		r.Ctx.JSON(200, err)
@@ -104,9 +122,25 @@ func (r BeautyRender) Interface(data interface{}) {
 	r.OK(result)
 }
 
+type Opt struct {
+	ErrorMap map[int]error
+}
+
 // 注册用
 func Renderer() macaron.Handler {
 	return func(ctx *macaron.Context) {
-		ctx.MapTo(&BeautyRender{ctx}, (*Render)(nil))
+		ctx.MapTo(&BeautyRender{
+			Ctx:      ctx,
+			ErrorMap: map[int]error{},
+		}, (*Render)(nil))
+	}
+}
+
+func RendererOpt(opt *Opt) macaron.Handler {
+	return func(ctx *macaron.Context) {
+		ctx.MapTo(&BeautyRender{
+			Ctx:      ctx,
+			ErrorMap: opt.ErrorMap,
+		}, (*Render)(nil))
 	}
 }

@@ -23,6 +23,11 @@ type Resp struct {
 	Msg  string `json:"msg"`
 }
 
+type Resp2 struct {
+	Code int    `json:"code"`
+	Msg  string `json:"msg"`
+}
+
 type DataResp struct {
 	Resp
 	Data interface{} `json:"data"`
