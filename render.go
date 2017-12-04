@@ -27,6 +27,16 @@ func StackTrace(all bool) string {
 	return string(buf[0:size])
 }
 
+func (this BeautyRender) E(code int, msg string, err error) {
+	if err != nil {
+		msg += "[ERROR:" + err.Error() + "]"
+	}
+	this.Ctx.JSON(200, &Resp{
+		Code: int64(code),
+		Msg:  msg,
+	})
+}
+
 // 支持string,error,ErrorResponse三种参数
 func (this BeautyRender) Error(err interface{}) {
 
