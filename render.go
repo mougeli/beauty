@@ -13,8 +13,8 @@ import (
 type Render interface {
 	OK(data interface{})
 	Error(err interface{})
-	ECode(code int, errs ...error)
-	E(code int, msg string, err error)
+	E(code int, errs ...error)
+	EDeatil(code int, msg string, err error)
 	Interface(data interface{})
 }
 
@@ -30,7 +30,7 @@ func StackTrace(all bool) string {
 	return string(buf[0:size])
 }
 
-func (r BeautyRender) ECode(code int, errs ...error) {
+func (r BeautyRender) E(code int, errs ...error) {
 	msg := "UNKNOWN"
 	e, has := r.ErrorMap[code]
 	if has {
@@ -49,7 +49,7 @@ func (r BeautyRender) ECode(code int, errs ...error) {
 	})
 }
 
-func (r BeautyRender) E(code int, msg string, err error) {
+func (r BeautyRender) EDeatil(code int, msg string, err error) {
 	if err != nil {
 		msg += "[ERROR:" + err.Error() + "]"
 	}
