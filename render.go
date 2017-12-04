@@ -27,18 +27,18 @@ func StackTrace(all bool) string {
 	return string(buf[0:size])
 }
 
-func (this BeautyRender) E(code int, msg string, err error) {
+func (r BeautyRender) E(code int, msg string, err error) {
 	if err != nil {
 		msg += "[ERROR:" + err.Error() + "]"
 	}
-	this.Ctx.JSON(200, &Resp{
+	r.Ctx.JSON(200, &Resp{
 		Code: int64(code),
 		Msg:  msg,
 	})
 }
 
 // 支持string,error,ErrorResponse三种参数
-func (this BeautyRender) Error(err interface{}) {
+func (r BeautyRender) Error(err interface{}) {
 
 	if logger.Level >= DebugLevel {
 		logger.Debug(StackTrace(false))
@@ -46,31 +46,31 @@ func (this BeautyRender) Error(err interface{}) {
 
 	switch err.(type) {
 	case ErrResp:
-		this.Ctx.JSON(200, err)
+		r.Ctx.JSON(200, err)
 	case error:
-		this.Ctx.JSON(200, NewUnknownErrResp(err.(error)))
+		r.Ctx.JSON(200, NewUnknownErrResp(err.(error)))
 	case string:
-		this.Ctx.JSON(200, NewUnknownErrResp(errors.New(err.(string))))
+		r.Ctx.JSON(200, NewUnknownErrResp(errors.New(err.(string))))
 	default:
-		this.Ctx.JSON(200, UnknownErrResp)
+		r.Ctx.JSON(200, UnknownErrResp)
 	}
 }
 
 // 支持[]byte或者interface{}
-func (this BeautyRender) OK(data interface{}) {
+func (r BeautyRender) OK(data interface{}) {
 	switch data.(type) {
 	case []byte:
 		result := make(map[string]interface{})
 		if err := json.Unmarshal(data.([]byte), &result); err != nil {
-			this.Ctx.RawData(200, data.([]byte))
+			r.Ctx.RawData(200, data.([]byte))
 			return
 		}
-		this.Ctx.JSON(200, DataResp{
+		r.Ctx.JSON(200, DataResp{
 			Resp: OK,
 			Data: result,
 		})
 	default:
-		this.Ctx.JSON(200, DataResp{
+		r.Ctx.JSON(200, DataResp{
 			Resp: OK,
 			Data: data,
 		})
@@ -78,14 +78,14 @@ func (this BeautyRender) OK(data interface{}) {
 }
 
 // 支持Error和OK两种
-func (this BeautyRender) Interface(data interface{}) {
+func (r BeautyRender) Interface(data interface{}) {
 	var bytes []byte
 	switch data.(type) {
 	case ErrResp:
-		this.Error(data)
+		r.Error(data)
 		return
 	case error:
-		this.Error(data)
+		r.Error(data)
 		return
 	case string:
 		bytes = []byte(data.(string))
@@ -97,11 +97,11 @@ func (this BeautyRender) Interface(data interface{}) {
 	err := json.Unmarshal(bytes, &result)
 	if err != nil {
 		// 不是JSON
-		this.Error(string(bytes))
+		r.Error(string(bytes))
 		return
 	}
 	// 返回JSON
-	this.OK(result)
+	r.OK(result)
 }
 
 // 注册用
